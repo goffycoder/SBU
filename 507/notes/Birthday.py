@@ -1,18 +1,29 @@
 import matplotlib.pyplot as plt
 import time
+from decimal import Decimal, getcontext
 
-def birthday_problem(num_people):
-    """Calculates the probability of a shared birthday."""
+def birthday_problem_precise(num_people, precision=50):
+    """
+    Calculates the probability of a shared birthday with high precision
+    using the decimal module.
+    """
+    # Set the precision (number of significant digits) for decimal calculations
+    getcontext().prec = precision
+
     if num_people > 365:
-        return 1.0
+        return Decimal(1)
     if num_people <= 1:
-        return 0.0
+        return Decimal(0)
 
-    prob_unique = 1.0
-    for i in range(num_people):
-        prob_unique *= (365 - i) / 365
+    # Use Decimal objects for all parts of the calculation
+    prob_unique = Decimal(1)
+    days_in_year = Decimal(365)
     
-    return 1 - prob_unique
+    for i in range(num_people):
+        # All arithmetic is now high-precision
+        prob_unique *= (days_in_year - i) / days_in_year
+    
+    return Decimal(1) - prob_unique
 
 # --- Setup for Dynamic Plotting ---
 plt.ion()  # Turn on interactive mode
@@ -22,7 +33,7 @@ fig, ax = plt.subplots(figsize=(10, 6))
 n_values = []
 prob_values = []
 
-print("--- Dynamic Birthday Problem Visualizer ---")
+print("--- Dynamic Birthday Problem Visualizer (High Precision) ---")
 print("Enter the number of people to see the probability.")
 print("The plot will update with each new entry.")
 print("Type 'quit' or 'q' to exit.")
@@ -42,12 +53,20 @@ while True:
             print("Please enter a positive number.")
             continue
 
-        # Calculate probability and store the data point
-        probability = birthday_problem(group_size)
-        n_values.append(group_size)
-        prob_values.append(probability)
+        # --- High-Precision Calculation ---
+        # Calculate probability with high precision (e.g., 50 digits)
+        probability_precise = birthday_problem_precise(group_size, precision=50)
         
-        print(f"-> For n={group_size}, the probability is {probability:.2%}")
+        # For plotting, we can convert the Decimal back to a standard float
+        probability_float = float(probability_precise)
+
+        n_values.append(group_size)
+        prob_values.append(probability_float)
+        
+        # --- Display Results ---
+        print(f"-> For n={group_size}:")
+        # Print the high-precision result to see the difference
+        print(f"   - High-Precision Value: {probability_precise*100}")
 
         # --- Update the Plot ---
         ax.clear() # Clear the previous plot
